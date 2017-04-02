@@ -10,6 +10,7 @@ public class TankBot {
 	double energy;
 	double heading;
 	double velocity;
+	double bearingRadians;
 	
 	public TankBot() {
 		name = "";
@@ -18,6 +19,7 @@ public class TankBot {
 		energy = 0.0;
 		heading = 0.0;
 		velocity = 0.0;
+		bearingRadians = 0.0;
 	}
 	
 	public void update(ScannedRobotEvent e) {
@@ -27,6 +29,7 @@ public class TankBot {
 		energy = e.getEnergy();
 		heading = e.getHeading();
 		velocity = e.getVelocity();
+		bearingRadians = e.getBearingRadians();
 	}
 	
 	public void reset() {
