@@ -45,11 +45,19 @@ public class MyRobot extends AdvancedRobot {
 		out.println("in the scannedRobot");
 		if(enemies.containsKey(e.getName())){
 			enemies.get(e.getName()).update(e);
+			double enemyBearing = this.getHeading() + e.getBearing();
+			enemies.get(e.getName()).X = getX() + e.getDistance() * Math.sin(Math.toRadians(enemyBearing));
+			enemies.get(e.getName()).Y = getY() + e.getDistance() * Math.cos(Math.toRadians(enemyBearing));
+			out.println("X: " + enemies.get(e.getName()).X);
+			out.println("Y: " + enemies.get(e.getName()).Y);
 		}
 		else{
 			TankBot enemy = new TankBot();
 			enemy.update(e);
 			enemies.put(enemy.name, enemy);
+			double enemyBearing = this.getHeading() + e.getBearing();
+			enemies.get(e.getName()).X = getX() + e.getDistance() * Math.sin(Math.toRadians(enemyBearing));
+			enemies.get(e.getName()).Y = getY() + e.getDistance() * Math.cos(Math.toRadians(enemyBearing));
 		}
 		
 		// Every time obtain new information, we call updateStrategy to analyze the environment and decide choosing which strategy 

@@ -11,6 +11,8 @@ public class TankBot {
 	double heading;
 	double velocity;
 	double bearingRadians;
+	double X;
+	double Y;
 	
 	public TankBot() {
 		name = "";
@@ -20,6 +22,8 @@ public class TankBot {
 		heading = 0.0;
 		velocity = 0.0;
 		bearingRadians = 0.0;
+		X = 0.0;
+		Y = 0.0;
 	}
 	
 	public void update(ScannedRobotEvent e) {
@@ -39,6 +43,9 @@ public class TankBot {
 		energy = 0.0;
 		heading = 0.0;
 		velocity = 0.0;
+		bearingRadians = 0.0;
+		X = 0.0;
+		Y = 0.0;
 	}
 	
 	public boolean isEmpty() { 
