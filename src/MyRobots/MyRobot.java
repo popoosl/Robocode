@@ -79,7 +79,7 @@ public class MyRobot extends AdvancedRobot {
 			radarStrategy = CIRCLESCAN;
 		
 		// Update enemy state
-		enemyDistribution = updateEnemyState();
+		enemyDistribution = updateEnemyDistribution();
 		if(enemyDistribution == 0){
 			out.println("Sparse!");
 		}
@@ -87,7 +87,7 @@ public class MyRobot extends AdvancedRobot {
 			out.println("enemy concentrated in: " + enemyDistribution);
 	}
 	
-	public int updateEnemyState(){
+	public int updateEnemyDistribution(){
 		// If there's only 1 enemy, return 0
 		if(enemies.size() <= 1){
 			return 0;
