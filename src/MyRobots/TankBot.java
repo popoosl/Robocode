@@ -1,5 +1,7 @@
 package MyRobots;
 
+import java.util.*;
+
 import robocode.*;
 
 public class TankBot {
@@ -11,8 +13,13 @@ public class TankBot {
 	double heading;
 	double velocity;
 	double bearingRadians;
+	double headingRadians;
 	double X;
 	double Y;
+	//for targeting
+	Queue<Double> velocityHistory = new LinkedList<Double>();
+	Queue<Double> headingHistory = new LinkedList<Double>();
+	final int historyNum = 3;
 	
 	public TankBot() {
 		name = "";
@@ -24,6 +31,8 @@ public class TankBot {
 		bearingRadians = 0.0;
 		X = 0.0;
 		Y = 0.0;
+		headingRadians = 0.0;
+		resetMovingHistory();
 	}
 	
 	public void update(ScannedRobotEvent e) {
@@ -34,8 +43,34 @@ public class TankBot {
 		heading = e.getHeading();
 		velocity = e.getVelocity();
 		bearingRadians = e.getBearingRadians();
+		headingRadians = e.getHeadingRadians();
+		updateMovingHistory();
 	}
-	
+	private void updateMovingHistory(){
+		velocityHistory.add(velocity);
+		headingHistory.add(heading);
+		if(velocityHistory.size() > historyNum) {
+			velocityHistory.poll();
+			headingHistory.poll();
+		}
+	}
+	public boolean isConstantMoving(){
+		Double v = velocityHistory.peek();
+		for (Double vv : velocityHistory) {
+			if (v != vv);
+				return false;
+		}
+		Double h = velocityHistory.peek();
+		for (Double hh : headingHistory) {
+			if (h != hh);
+				return false;
+		}
+		return true;
+	}
+	private void resetMovingHistory(){
+		velocityHistory.clear();
+		headingHistory.clear();
+	}
 	public void reset() {
 		name = "";
 		bearing = 0.0;
@@ -46,6 +81,8 @@ public class TankBot {
 		bearingRadians = 0.0;
 		X = 0.0;
 		Y = 0.0;
+		headingRadians = 0.0;
+		resetMovingHistory();
 	}
 	
 	public boolean isEmpty() { 

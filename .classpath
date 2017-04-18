@@ -7,5 +7,6 @@
 			<attribute name="javadoc_location" value="file:/E:/robocode/javadoc/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="robocode.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
