@@ -128,7 +128,6 @@ public class MyRobot extends AdvancedRobot {
 			}
 
 		}
-
 		if(max > enemies.size()/4 + 1)
 			return index;
 		else
@@ -196,8 +195,8 @@ public class MyRobot extends AdvancedRobot {
 		if (energy < 3) {
 //			return;
 		} else {
-			if (enemies.size() >= 2) {
-				
+			if (enemies.size() >= 2 && enemyDistribution!=0) {
+				turnToCluster(enemyDistribution);
 			} else if (enemies.size() == 1) {
 				TankBot e = enemies.entrySet().iterator().next().getValue();
 				if (fireNums[(int)(e.distance / 100)] > fireNumsBar) {
@@ -281,6 +280,16 @@ public class MyRobot extends AdvancedRobot {
 			}
 		}
 	}
+	private void turnToCluster(int clusterPosition) {
+		if(enemies.size()>1) {
+			TankBot e = enemies.entrySet().iterator().next().getValue();
+			double gunTurn = (clusterPosition - 1) * Math.PI/2 - getGunHeadingRadians();
+			setTurnGunRightRadians(Utils.normalRelativeAngle(gunTurn));
+//			if (getGunHeat() == 0 && gunTurn < Math.atan2(9, e.distance) ) { 
+				fire();
+//			}
+		}
+	}
 	private void fire(){
 		if(enemies.size()==1) {
 			TankBot e = enemies.entrySet().iterator().next().getValue();
@@ -290,6 +299,8 @@ public class MyRobot extends AdvancedRobot {
 			double bulletPower = Math.min(can1, can2);
 			setFire(bulletPower);
 			updateWaves(bulletPower);
+		} else {
+			setFire(1.7);
 		}
 	}
 	private void updateWaves(double power) {
