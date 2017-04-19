@@ -33,10 +33,14 @@ public class MyRobot extends AdvancedRobot {
 	double enemyDistributionThreshold = 500;
 	int turnCount = 0;
 
-	//Targeting
-	int fireNums = 0;
-	final int fireNumsBar = 20;
+	//Targeting: basic
+	int[] fireNums = new int[13];
+	final int fireNumsBar = 30;
 	final int enemyDistanceBar = 500;
+	//Trageting: for guessFactor
+	ArrayList<WaveBullet> waves = new ArrayList<WaveBullet>();
+	int[][] stats = new int[13][31];
+	int direction = 1;
 
 	public void run() {
 
@@ -187,68 +191,94 @@ public class MyRobot extends AdvancedRobot {
 	}
 
 	void Target() {
-//		double energy = getEnergy();
-//		int enenmyNum = getOthers();
-//		if (energy < 3) {
+		double energy = getEnergy();
+		int enenmyNum = getOthers();
+		if (energy < 3) {
 //			return;
-//		} else {
-//			if (enenmyNum > 2) {
-//				
-//			} else {
-//				if (fireNums > fireNumsBar) {
-//					turnByGuess();
-//				} else {
-//					TankBot e = enemies.entrySet().iterator().next().getValue();
-//					if (e.distance < enemyDistanceBar) {
-//						turnToEnemy();
-//					} else {
-//						if (e.isConstantMoving()) {
-//							turnByPrediction();
-//						} else {
-//							turnRandom();
-//						}
-//					}
-//				}
-//			}
-//		}
-		turnByPrediction();
-		fire();
+		} else {
+			if (enemies.size() >= 2) {
+				
+			} else if (enemies.size() == 1) {
+				TankBot e = enemies.entrySet().iterator().next().getValue();
+				if (fireNums[(int)(e.distance / 100)] > fireNumsBar) {
+					turnByGuess();
+				} else {
+					if (e.distance < enemyDistanceBar) {
+						turnToEnemy();
+					} else {
+						if (e.isConstantMoving()) {
+							turnByPrediction();
+						} else {
+							turnRandom();
+						}
+					}
+				}
+			}
+		}
+//		turnByGuess();
+//		turnByPrediction();
+//		turnToEnemy();
+//		turnRandom();
+
+//		fire();
 	}
 
 	private void turnToEnemy() {
 		if(enemies.size()==1) {
 			TankBot e = enemies.entrySet().iterator().next().getValue();
 			double gunTurn = getHeadingRadians() + e.bearingRadians - getGunHeadingRadians();
-			setTurnGunRightRadians(gunTurn);
+			setTurnGunRightRadians(Utils.normalRelativeAngle(gunTurn));
+			if (getGunHeat() == 0 && gunTurn < Math.atan2(9, e.distance) ) { 
+				fire();
+			}
 		}
 	}
 	private void turnRandom() {
 		if(enemies.size()==1) {
 			TankBot e = enemies.entrySet().iterator().next().getValue();
 			double targetAngle = getHeadingRadians() + e.bearingRadians;
-			double escapeAngle = Math.asin(8 / Rules.getBulletSpeed(3));
+			double escapeAngle = Math.asin(8 / Rules.getBulletSpeed(11));
 			double randomAimOffset = -escapeAngle + Math.random() * 2 * escapeAngle;
 			double headOnTargeting = targetAngle - getGunHeadingRadians();
-			setTurnGunRightRadians(Utils.normalRelativeAngle(headOnTargeting + randomAimOffset));
+			double gunTurn = Utils.normalRelativeAngle(headOnTargeting + randomAimOffset);
+			setTurnGunRightRadians(gunTurn);
+			if (getGunHeat() == 0 && gunTurn < Math.atan2(9, e.distance) ) { 
+				fire();
+			}
+			
 		}
 	}
 	private void turnByPrediction() {
 		if(enemies.size()==1) {
 			TankBot e = enemies.entrySet().iterator().next().getValue();
 			double absoluteBearing = getHeadingRadians() + e.bearingRadians;
-			setTurnGunRightRadians(Utils.normalRelativeAngle(absoluteBearing - 
-			    getGunHeadingRadians() + (e.velocity * Math.sin(e.headingRadians - 
-			    absoluteBearing) / 13.0)));
+			double gunTurn = Utils.normalRelativeAngle(absoluteBearing - 
+				    getGunHeadingRadians() + (e.velocity * Math.sin(e.headingRadians - 
+						    absoluteBearing) / 13.0));
+			setTurnGunRightRadians(gunTurn);
+			if (getGunHeat() == 0 && gunTurn < Math.atan2(9, e.distance) ) { 
+				fire();
+			}
 		}
 	}
 	private void turnByGuess() {
 		if(enemies.size()==1) {
 			TankBot e = enemies.entrySet().iterator().next().getValue();
-			double targetAngle = getHeadingRadians() + e.bearingRadians;
-			double escapeAngle = Math.asin(8 / Rules.getBulletSpeed(3));
-			double randomAimOffset = -escapeAngle + Math.random() * 2 * escapeAngle;
-			double headOnTargeting = targetAngle - getGunHeadingRadians();
-			setTurnGunRightRadians(Utils.normalRelativeAngle(headOnTargeting + randomAimOffset));
+			int[] currentStats = stats[(int)(e.distance / 100)]; 
+			int bestindex = 15;	
+			for (int i=0; i<31; i++)
+				if (currentStats[bestindex] < currentStats[i])
+					bestindex = i;
+			
+			double absBearing = getHeadingRadians() + e.bearingRadians;
+			double guessfactor = (double)(bestindex - (stats[0].length - 1) / 2) / ((stats[0].length - 1) / 2);
+			double escapeAngle = Math.asin(8 / Rules.getBulletSpeed(11));
+			double angleOffset = direction * guessfactor * escapeAngle;
+	        double gunTurn = Utils.normalRelativeAngle(absBearing - getGunHeadingRadians() + angleOffset);
+	        setTurnGunRightRadians(gunTurn);
+			if (getGunHeat() == 0 && gunTurn < Math.atan2(9, e.distance) ) { 
+				fire();
+			}
 		}
 	}
 	private void fire(){
@@ -259,8 +289,44 @@ public class MyRobot extends AdvancedRobot {
 			double can2 = Math.min(3, 15*getEnergy()/100);
 			double bulletPower = Math.min(can1, can2);
 			setFire(bulletPower);
-			fireNums++;
+			updateWaves(bulletPower);
 		}
-		
 	}
+	private void updateWaves(double power) {
+		if(enemies.size()==1) {
+			TankBot e = enemies.entrySet().iterator().next().getValue();
+			double absBearing = getHeadingRadians() + e.bearingRadians;
+			 
+			// find our enemy's location:
+			double ex = getX() + Math.sin(absBearing) * e.distance;
+			double ey = getY() + Math.cos(absBearing) * e.distance;
+	 
+			// Let's process the waves now:
+			for (int i=0; i < waves.size(); i++)
+			{
+				WaveBullet currentWave = (WaveBullet)waves.get(i);
+				if (currentWave.checkHit(ex, ey, getTime()))
+				{
+					waves.remove(currentWave);
+					i--;
+				}
+			}
+	 
+			// don't try to figure out the direction they're moving 
+			// they're not moving, just use the direction we had before
+			if (e.velocity != 0)
+			{
+				if (Math.sin(e.headingRadians-absBearing)*e.velocity < 0)
+					direction = -1;
+				else
+					direction = 1;
+			}
+			int[] currentStats = stats[(int)(e.distance / 100)];
+			fireNums[(int)(e.distance / 100)]++;
+			WaveBullet newWave = new WaveBullet(getX(), getY(), absBearing, power,
+	                        direction, getTime(), currentStats);
+			waves.add(newWave);
+		}
+	}
+	
 }
