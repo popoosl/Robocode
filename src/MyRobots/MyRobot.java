@@ -41,12 +41,31 @@ public class MyRobot extends AdvancedRobot {
 	ArrayList<WaveBullet> waves = new ArrayList<WaveBullet>();
 	int[][] stats = new int[13][31];
 	int direction = 1;
+	
+	//Movement
+	//keep a distance against the locked enemy and apply squaring off circling movement
+	int squaringOffDistance = 250;
+	//a degree when our tank approach or evade the enemy while applying circling movement
+	double squaringOffAngle = 30.0;
+	int distanceToWall = 100;
+	//timeOfAvoid used to handle the "avoid_wall" event, during this time period, it do not handle the same event
+	int timeOfAvoid = 30;
+	//"avoid_wall" event will be handled only when avoidWallFlag <= 0
+	int avoidWallFlag = 0; 
+	int moveDirection = 1;
 
 	public void run() {
 
 		setAdjustRadarForGunTurn(true);
 		setAdjustGunForRobotTurn(true);
 
+		addCustomEvent(new Condition("avoid_wall") {
+			public boolean test() {
+				return ((getX() <= distanceToWall || getX() >= getBattleFieldWidth() - distanceToWall ||
+						getY() <= distanceToWall || getY() >= getBattleFieldHeight() - distanceToWall));
+			}
+		});
+		
 		while (true) {
 			turnCount++;
 			Radar();
@@ -185,8 +204,74 @@ public class MyRobot extends AdvancedRobot {
 		}
 	}
 
+	public void onCustomEvent(CustomEvent e) {
+		if (e.getCondition().getName().equals("avoid_wall"))
+		{
+			if(avoidWallFlag <= 0) {
+				avoidWallFlag += timeOfAvoid;
+				setMaxVelocity(0);
+			} 
+		}
+	}
+	
+	public void onHitWall(HitWallEvent e) { out.println("Hit a wall anyway!"); }
+	
+	public void onHitRobot(HitRobotEvent e) { avoidWallFlag = 0; }
+	
+	void squaringOff() {
+		TankBot enemy = new TankBot();
+		enemy = enemies.entrySet().iterator().next().getValue();
+		
+		if(enemy.distance <= squaringOffDistance){
+			setTurnRight(enemy.bearing + 90 + squaringOffAngle);
+		} else {
+			setTurnRight(enemy.bearing + 90 - squaringOffAngle);
+		}
+		
+		if (avoidWallFlag > 0) avoidWallFlag--;
+		
+		if (getVelocity() == 0) {
+			setMaxVelocity(10);
+			moveDirection *= -1;
+			setAhead(10000 * moveDirection);
+		}
+		
+		
+	}
+	
+	//If there is a flock, move away from them
+	public int wallBearing() {
+		switch(updateEnemyDistribution()) {
+		case 1: return -180;
+		case 2: return -90;
+		case 3: return 0;
+		case 4: return 90;
+		default: return 0;
+		}
+	}
+	
+	void goForWalls() {
+		int randomNum = ThreadLocalRandom.current().nextInt(-180,180);
+		avoidWallFlag = 1; //Disable "avoid_wall" event
+		setTurnRight(wallBearing());
+		setAhead(10000 * moveDirection);
+//		if (getVelocity() == 0) {
+//			setTurnRight(randomNum);
+//			setAhead(20);
+//		}
+	}
+	
 	void Movement() {
-
+		switch(radarStrategy){
+		case LOCK://if radar locks onto one enemy, apply squaring off and avoid corners
+			squaringOff();
+			break;
+		case CIRCLESCAN://if there are multiple enemies, pick a corner and move to that corner
+//			goForWalls();
+			break;
+		default:
+			break;
+		}
 	}
 
 	void Target() {
