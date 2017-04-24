@@ -1,3 +1,6 @@
+//GuessFactor targeting implementation is refer from: http://robowiki.net/wiki/GuessFactor
+//Prediction targeting implementation is refer from: http://robowiki.net/wiki/Linear_Targeting
+//Random targeting implementation is refer from: http://robowiki.net/wiki/Random_Targeting
 package MyRobots;
 
 import robocode.Robot;
