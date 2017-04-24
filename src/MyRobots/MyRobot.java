@@ -62,7 +62,7 @@ public class MyRobot extends AdvancedRobot {
 		setAdjustRadarForGunTurn(true);
 		setAdjustGunForRobotTurn(true);
 
-		//Reference: http://mark.random-article.com/weber/java/robocode/lesson5.html
+		//"avoid_wall" reference: http://mark.random-article.com/weber/java/robocode/lesson5.html
 		addCustomEvent(new Condition("avoid_wall") {
 			public boolean test() {
 				return ((getX() <= distanceToWall || getX() >= getBattleFieldWidth() - distanceToWall ||
@@ -222,7 +222,7 @@ public class MyRobot extends AdvancedRobot {
 	
 	public void onHitRobot(HitRobotEvent e) { avoidWallFlag = 0; }
 	
-	//Reference: http://mark.random-article.com/weber/java/robocode/lesson5.html
+	//squaringOff() reference: http://mark.random-article.com/weber/java/robocode/lesson5.html
 	void squaringOff() {
 		TankBot enemy = new TankBot();
 		enemy = enemies.entrySet().iterator().next().getValue();
